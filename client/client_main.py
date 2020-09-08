@@ -1,7 +1,7 @@
 from desmume.emulator import DeSmuME
 
 def main(emu):
-    emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds')
+    emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds') # a
     win = emu.create_sdl_window()
 
     frame = 0
