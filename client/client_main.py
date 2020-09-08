@@ -4,7 +4,7 @@ import sys
 from contextlib import redirect_stdout
 
 def main(emu):
-    emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds') # a
+    emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds')
     win = emu.create_sdl_window()
     emu.savestate.load_file('assets/lol.ds2')
     emu.input.keypad_add_key(64)
