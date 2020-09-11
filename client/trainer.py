@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 LEFT = 32
 RIGHT = 16
@@ -27,7 +28,7 @@ class Trainer:
 
         # the possible branches of the Trainer AI
         branches = [(60, 32), (50, 32), (40, 32),(30, 32), (20, 32), (10, 32), (0, 0),
-                    (60, 16), (50, 16), (40, 16),(30, 16), (20, 16), (10, 16)]
+                    (10, 16), (20, 16), (30, 16),(40, 16), (50, 16), (60, 16)]
         best_branch_reward = -math.inf
         for t, dir in branches:
             frame = 0
@@ -39,7 +40,13 @@ class Trainer:
                 self.emu.cycle()
                 self.win.draw()
             branch_reward = self.emu.memory.read(self.reward_function_addr,self.reward_function_addr,2,signed=True)
-            if(self.f):
+            branch_pixel = self.emu.screenshot().getpixel((132,294))
+            gray_error = np.abs(branch_pixel[0]-branch_pixel[1]) + \
+                         np.abs(branch_pixel[0]-branch_pixel[2]) + \
+                         np.abs(branch_pixel[2]-branch_pixel[1])
+            if gray_error > 40:
+                branch_reward = 0
+            if self.f:
                 print('attempted reward',branch_reward)
                 self.f.flush()
             if branch_reward > best_branch_reward:
