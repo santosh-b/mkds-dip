@@ -7,7 +7,7 @@ def main(emu):
     emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds')
     win = emu.create_sdl_window()
     emu.NB_STATES = 100
-    emu.savestate.load_file('assets/shroom.dst')
+    emu.savestate.load_file('assets/lol3.ds2')
 
     emu.input.keypad_add_key(64)
     emu.volume_set(0)
@@ -28,7 +28,7 @@ def main(emu):
 
     with open('assets/file.txt', 'w') as logfile, open('training_data/labels.txt','a') as labelfile:
         with redirect_stdout(logfile):
-            teacher = Teacher(emu, win, int('0x023599DC', 16), logfile, labelfile)
+            teacher = Teacher(emu, win, int('0x0233EF5C', 16), logfile, labelfile)
             teacher.train()
 
 def cheat(emu):

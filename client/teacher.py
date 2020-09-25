@@ -15,12 +15,14 @@ class Teacher:
         self.reward_function_addr = reward
         self.f = outputfile
         self.l = labelfile
-        self.road_colors = ((192, 192, 192), (112, 104, 80))
+        self.road_colors = ((88,88,72))
         self.screen_watch_ratio = 0.7
-        self.branch_pmf = [.9, .01, .01, .01, .01, .01, .01, .01, .01, .01, .01, .00, .00, .00, .00]
+        self.branch_pmf = [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00, .00, .00]
+        self.next_dump = None
         #self.branch_pmf = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         #peach gardens ((192,200,200),(128,96,56),(240,232,176),(216,216,216))
         #shroom ridge ((192,192,192),(112,104,80))
+        # ((88,88,72))
 
     def train(self):
         self.emu.input.keypad_add_key(1)
@@ -59,10 +61,12 @@ class Teacher:
                 self.f.flush()
 
     def dump_data(self, label):
-        key = np.datetime64('now').astype(int)
-        self.emu.screenshot().save(f'training_data/{key}.png')
-        self.l.write(f'{key}; {label}\n')
-        self.l.flush()
+        if self.next_dump:
+            key = np.datetime64('now').astype(int)
+            self.next_dump.save(f'training_data/{key}.png')
+            self.l.write(f'{key}; {label}\n')
+            self.l.flush()
+        self.next_dump = self.emu.screenshot()
 
     def color_dist(self, c1, c2):
         return np.min(np.linalg.norm(c1-c2,axis=1))
