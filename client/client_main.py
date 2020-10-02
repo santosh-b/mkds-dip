@@ -17,31 +17,31 @@ def main(emu):
     #     emu.cycle()
     #     win.draw()
     #     win.process_input()
-    #     #if frame==1000:
-    #     #    cheat(emu)
-    #     #    print('chaeated')
-    #     #print(emu.memory.read(int('0x023599DC', 16), int('0x023599DC', 16), 2, signed=True))
+    #     if frame==1000:
+    #        cheat(emu)
+    #        print('chaeated')
+    #     print(emu.input.keypad_get())
 
-    #print(emu.input.keypad_get()) #0x0233EF5C
+    print(emu.input.keypad_get()) #0x0233EF5C
     # peach gardens time trial 0235EB1C
     # shroom ridge time trial 023599DC
 
     with open('assets/file.txt', 'w') as logfile, open('training_data/labels.txt','a') as labelfile:
         with redirect_stdout(logfile):
             teacher = Teacher(emu, win, int('0x0233EF5C', 16), logfile, labelfile)
-            teacher.train()
+            while True:
+                teacher.train()
 
 def cheat(emu):
     '''
+    miniature action replay cheat interpreter
+    loads the following action replay cheat
     92056E14 00004002
     12056E12 000020FF
     D2000000 00000000
     '''
     emu.memory.write_long(int('0x02056E14', 16), int('0x4002', 16))
     emu.memory.write_long(int('0x02056E12', 16), int('0x20FF',16))
-    #emu.memory.write_long(int('0x02056E12', 16), int('0x20FF', 16))
-    #print(hex(emu.memory.read(int('0x02056E12', 16),int('0x02056E12', 16),2,signed=False)))
-    #print(hex(emu.memory.read(int('0x02056E14', 16), int('0x02056E14', 16), 2, signed=False)))
 
 
 
