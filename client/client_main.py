@@ -1,9 +1,12 @@
 from desmume.emulator import DeSmuME
-from client.teacher import Teacher
-import sys
+from teacher import Teacher
+import socket
 from contextlib import redirect_stdout
 
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 def main(emu):
+    #client.connect('127.0.0.1', 65432)
     emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds')
     win = emu.create_sdl_window()
     emu.NB_STATES = 100
@@ -22,15 +25,19 @@ def main(emu):
     #        print('chaeated')
     #     print(emu.input.keypad_get())
 
-    print(emu.input.keypad_get()) #0x0233EF5C
-    # peach gardens time trial 0235EB1C
-    # shroom ridge time trial 023599DC
-
+    # print(emu.input.keypad_get()) #0x0233EF5C
+    # # peach gardens time trial 0235EB1C
+    # # shroom ridge time trial 023599DC
+    #
     with open('assets/file.txt', 'w') as logfile, open('training_data/labels.txt','a') as labelfile:
         with redirect_stdout(logfile):
-            teacher = Teacher(emu, win, int('0x0233EF5C', 16), logfile, labelfile)
+            teacher = Teacher(emu, win, int('0x0233EF5C', 16), logfile, labelfile, headless=True)
             while True:
                 teacher.train()
+                emu.savestate.load_file('assets/lol3.ds2')
+
+#def client_send_img(img):
+
 
 def cheat(emu):
     '''

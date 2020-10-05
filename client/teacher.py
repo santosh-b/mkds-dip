@@ -9,7 +9,7 @@ BASE_SAVESTATE = 99
 
 class Teacher:
 
-    def __init__(self, emulator, window, reward, outputfile=None, labelfile=None):
+    def __init__(self, emulator, window, reward, outputfile=None, labelfile=None, headless=True):
         self.emu = emulator
         self.win = window
         self.reward_function_addr = reward
@@ -17,9 +17,10 @@ class Teacher:
         self.l = labelfile
         self.road_colors = ((88,88,72),(120,120,104)) # Vector of colors to represent all the colors on the road
         self.screen_watch_ratio = 0.8 # How to weight the top screen vs bottom screen
-        self.branch_pmf = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.branch_pmf = [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00]
         self.next_dump = self.emu.screenshot() # Hold placeholder data dump
         self.reward_cap = 4100 # The amount of reward before terminating training (i.e. race is done)
+        self.headless = headless
 
         #self.branch_pmf = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # or [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00]
@@ -110,7 +111,8 @@ class Teacher:
             else:
                 self.emu.input.keypad_rm_key(dir)
             self.emu.cycle()
-            self.win.draw()
+            if not self.headless:
+                self.win.draw()
 
         branch_reward = self.get_current_reward()
         if dir == 0:
