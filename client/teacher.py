@@ -15,8 +15,10 @@ class Teacher:
         self.reward_function_addr = reward
         self.f = outputfile
         self.l = labelfile
-        self.road_colors = ((88,88,72),(120,120,104)) # Vector of colors to represent all the colors on the road
-        self.screen_watch_ratio = 0.8 # How to weight the top screen vs bottom screen
+        #self.road_colors = ((88,88,72),(120,120,104)) # Vector of colors to represent all the colors on the road
+        self.road_colors = ((0,0,0),(255,255,255),(134,77,0),(231,125,36),(231,223,158),(239,69,0),(247,215,28),(77,247,69),(166,247,142),(109,77,12),(142,77,20))
+        self.screen_watch_ratio = 0.6 # How to weight the top screen vs bottom screen
+        #self.branch_pmf = [1, .0, .0, .0, 0, .00, .00, .00, .00, .00, .00, .00, .00]
         self.branch_pmf = [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00]
         self.next_dump = self.emu.screenshot() # Hold placeholder data dump
         self.reward_cap = 4100 # The amount of reward before terminating training (i.e. race is done)
@@ -27,6 +29,7 @@ class Teacher:
         #peach gardens ((192,200,200),(128,96,56),(240,232,176),(216,216,216))
         #shroom ridge ((192,192,192),(112,104,80))
         #the ugly N64 map ((88,88,72),(120,120,104))
+        #yoshi falls ((134,77,0),(231,125,36),(231,223,158),(239,69,0),(247,215,28),(77,247,69),(166,247,142),(109,77,12),(142,77,20))
 
     def train(self):
         self.emu.input.keypad_update(1)
@@ -72,7 +75,7 @@ class Teacher:
 
     def dump_data(self, label):
         key = np.datetime64('now').astype(int)
-        self.next_dump.save(f'training_data/{key}.png')
+        self.next_dump.save(f'training_data3/{key}.png')
         self.l.write(f'{key}; {label}\n')
         self.l.flush()
         self.next_dump = self.emu.screenshot()
