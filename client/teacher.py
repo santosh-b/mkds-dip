@@ -16,8 +16,8 @@ class Teacher:
         self.f = outputfile
         self.l = labelfile
         #self.road_colors = ((88,88,72),(120,120,104)) # Vector of colors to represent all the colors on the road
-        self.road_colors = ((0,0,0),(255,255,255),(134,77,0),(231,125,36),(231,223,158),(239,69,0),(247,215,28),(77,247,69),(166,247,142),(109,77,12),(142,77,20))
-        self.screen_watch_ratio = 0.6 # How to weight the top screen vs bottom screen
+        self.road_colors = ((151,157,157),(200,200,152),(184,80,40),(240,208,152),(184,192,144),(200,200,152),(211,160,140),(80,24,8),(176,88,40),(175,175,175),(232,232,232),(168,88,16),(136,112,8),(136,56,32),(113,134,118),(160,96,80),(104,48,24),(40,64,56),(140,56,32),(200,88,40),(50,94,72),(44,72,56))
+        self.screen_watch_ratio = 0.1 # How to weight the top screen vs bottom screen
         #self.branch_pmf = [1, .0, .0, .0, 0, .00, .00, .00, .00, .00, .00, .00, .00]
         self.branch_pmf = [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00]
         self.next_dump = self.emu.screenshot() # Hold placeholder data dump
@@ -30,6 +30,9 @@ class Teacher:
         #shroom ridge ((192,192,192),(112,104,80))
         #the ugly N64 map ((88,88,72),(120,120,104))
         #yoshi falls ((134,77,0),(231,125,36),(231,223,158),(239,69,0),(247,215,28),(77,247,69),(166,247,142),(109,77,12),(142,77,20))
+        #lugi_mansion = ((134,182,77),(113,174,33),(0,0,0),(223,12,20),(62,70,62),(99,107,99),(93,52,28),(117,69,44),(134,52,44),(109,52,36),(150,109,60),(145,104,60),(150,117,77),(122,92,56),(85,125,93),(77,109,85),(77,28,20),(60,12,0),(85,36,0),(117,158,60),(77,109,44))
+        # mario circuit = ((114,106,82),(166,142,89),(134,109,69),(182,158,101),(174,150,101),(101,85,77),(97,89,81),(51,48,43),(49,45,41))
+        # bridge = ((184,80,40),(216,149,60),(240,208,152),(211,160,140),(80,24,8),(176,88,40),(128,128,128),(175,175,175),(128,136,120),(232,232,232),(168,88,16),(136,112,8),(136,136,104),(64,96,72),(136,56,32),(113,134,118),(160,96,80),(104,48,24),(40,64,56),(140,56,32),(64,104,72),(200,88,40),(50,94,72),(44,72,56))
 
     def train(self):
         self.emu.input.keypad_update(1)
@@ -75,7 +78,7 @@ class Teacher:
 
     def dump_data(self, label):
         key = np.datetime64('now').astype(int)
-        self.next_dump.save(f'training_data3/{key}.png')
+        self.next_dump.save(f'training_data5/{key}.png')
         self.l.write(f'{key}; {label}\n')
         self.l.flush()
         self.next_dump = self.emu.screenshot()
@@ -120,7 +123,7 @@ class Teacher:
         branch_reward = self.get_current_reward()
         if dir == 0:
             # score the branch if it only goes straight, i.e. the 'safe' option
-            branch_reward += 3
+            branch_reward += 1
         if self.f:
             # log results
             #print('attempted reward', branch_reward)

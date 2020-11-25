@@ -26,7 +26,7 @@ label_classes = {
 inv_labels = {label_classes[x]: x for x in label_classes}
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    model = keras.models.load_model('modelnew100.h5')
+    model = keras.models.load_model('brownmodel.h5')
     s.bind((HOST, PORT))
     s.listen()
     print('Server initialized on',(HOST,PORT))
@@ -39,6 +39,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 img = np.frombuffer(data, dtype=np.uint8).reshape(1,384,256,3)
             except:
                 continue
-            inference = inv_labels[np.argmax(model.predict(img)[0])]
+            print(img[:,192:,:,:].shape)
+            inference = inv_labels[np.argmax(model.predict(img[:,192:,:,:])[0])]
             print(inference)
             conn.send(str.encode(inference))

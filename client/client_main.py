@@ -1,5 +1,6 @@
 from desmume.emulator import DeSmuME
 from teacher import Teacher
+from app import App
 import socket
 import numpy as np
 import threading
@@ -17,7 +18,7 @@ def main():
     emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds')
     win = emu.create_sdl_window()
     emu.NB_STATES = 100
-    emu.savestate.load_file('assets/yoshi.dst')
+    emu.savestate.load_file('assets/bridge.dst')
 
     emu.volume_set(0)
 
@@ -27,7 +28,7 @@ def main():
     #         #time.sleep(.01)
     #         emu.cycle()
     #         win.draw()
-    #         print(emu.memory.read(int('0x0234CCFC', 16),int('0x0234CCFC', 16),2,signed=True))
+    #         #print(emu.memory.read(int('0x0234CCFC', 16),int('0x0234CCFC', 16),2,signed=True))
     #         if not inference:
     #             emu.input.keypad_update(0)
     #         if not do_training:
@@ -41,13 +42,16 @@ def main():
     # peach gardens time trial 0235EB1C
     # shroom ridge time trial 023599DC
     # yoshi falls 0x0234CCFC
+    # luigi manion 0235DC7C
+    # mario circuit 023688DC
+    # bridge 02366D5C
 
-    with open('assets/file2.txt', 'w') as logfile, open('training_data3/labels.txt','a') as labelfile:
+    with open('assets/file2.txt', 'w') as logfile, open('training_data5/labels.txt','a') as labelfile:
         with redirect_stdout(logfile):
-            teacher = Teacher(emu, win, int('0x0234CCFC', 16), logfile, labelfile, headless=False)
+            teacher = Teacher(emu, win, int('0x02366D5C', 16), logfile, labelfile, headless=False)
             while True:
                 teacher.train()
-                emu.savestate.load_file('assets/yoshi.dst')
+                emu.savestate.load_file('assets/bridge.dst')
 
 def client_inference():
     global inference
@@ -58,7 +62,7 @@ def client_inference():
         raw = serv.recv(57).decode()
         t = raw[1:-1].split(',')
         inference = (int(t[0]), int(t[1]))
-        time.sleep(.0001)
+        time.sleep(.1)
 
 def control():
     while True:
@@ -92,4 +96,7 @@ if __name__ == '__main__':
         t1.start()
         t2 = threading.Thread(target=control)
         t2.start()
-    main()
+    if do_inference:
+        app = App()
+        app.mainloop()
+    threading.Thread(target=main).start()
