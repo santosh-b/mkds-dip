@@ -7,9 +7,28 @@ import threading
 import time
 from contextlib import redirect_stdout
 
+label_classes = {
+    '(30, 32)': 0,
+    '(25, 32)': 1,
+    '(20, 32)': 2,
+    '(15, 32)': 3,
+    '(10, 32)': 4,
+    '(05, 32)': 5,
+    '(00, 00)': 6,
+    '(05, 16)': 7,
+    '(10, 16)': 8,
+    '(15, 16)': 9,
+    '(20, 16)': 10,
+    '(25, 16)': 11,
+    '(30, 16)': 12
+}
+
+inv_labels = {label_classes[x]: x for x in label_classes}
+
 serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 emu = DeSmuME()
 inference = None
+preds = None
 frame = 0
 do_training = False
 do_inference = False
@@ -18,7 +37,7 @@ def main():
     emu.open('assets/0168 - Mario Kart DS (U)(SCZ).nds')
     win = emu.create_sdl_window()
     emu.NB_STATES = 100
-    emu.savestate.load_file('assets/bridge.dst')
+    emu.savestate.load_file('assets/mario.dst')
 
     emu.volume_set(0)
 
@@ -29,8 +48,12 @@ def main():
     #         emu.cycle()
     #         win.draw()
     #         #print(emu.memory.read(int('0x0234CCFC', 16),int('0x0234CCFC', 16),2,signed=True))
-    #         if not inference:
-    #             emu.input.keypad_update(0)
+    #         app.update_buffer(emu.screenshot(),
+    #                           emu.memory.read(int('0x0233EF5C', 16), int('0x0233EF5C', 16), 2, signed=True),
+    #                           preds,
+    #                           frame)
+    #         # if not inference:
+    #         #     emu.input.keypad_update(0)
     #         if not do_training:
     #             win.process_input()
     #         if frame==1000:
@@ -46,29 +69,32 @@ def main():
     # mario circuit 023688DC
     # bridge 02366D5C
 
-    with open('assets/file2.txt', 'w') as logfile, open('training_data5/labels.txt','a') as labelfile:
+    with open('assets/file2.txt', 'w') as logfile, open('training_data2/labels.txt','a') as labelfile:
         with redirect_stdout(logfile):
-            teacher = Teacher(emu, win, int('0x02366D5C', 16), logfile, labelfile, headless=False)
+            teacher = Teacher(emu, win, int('0x023688DC', 16), logfile, labelfile, headless=False)
             while True:
                 teacher.train()
-                emu.savestate.load_file('assets/bridge.dst')
+                emu.savestate.load_file('assets/mario.dst')
 
 def client_inference():
     global inference
+    global preds
     serv.connect(('127.0.0.1', 65432))
     client_send_screen()
     while True:
         client_send_screen()
-        raw = serv.recv(57).decode()
-        t = raw[1:-1].split(',')
+        raw = np.fromstring(serv.recv(4096).decode().replace('[','').replace(']',''), dtype=np.float, sep=',')
+
+        preds = raw
+        i = inv_labels[np.argmax(raw)]
+        t = i[1:-1].split(',')
         inference = (int(t[0]), int(t[1]))
-        time.sleep(.1)
+        time.sleep(.01)
 
 def control():
     while True:
         # while frame%20 != 0:
         #     pass
-        print(inference)
         if inference:
             emu.input.keypad_rm_key(inference[1])
             emu.input.keypad_update(inference[1]+1)
@@ -96,7 +122,9 @@ if __name__ == '__main__':
         t1.start()
         t2 = threading.Thread(target=control)
         t2.start()
-    if do_inference:
-        app = App()
-        app.mainloop()
-    threading.Thread(target=main).start()
+    # threading.Thread(target=main).start()
+    # if True:
+    #     app = App()
+    #     app.mainloop()
+    main()
+

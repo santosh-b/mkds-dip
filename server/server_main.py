@@ -2,7 +2,10 @@ import socket
 import os
 import numpy as np
 from PIL import Image
+import tensorflow as tf
 from tensorflow import keras
+import pickle
+import sys
 
 HOST = '127.0.0.1'
 PORT = 65432
@@ -26,7 +29,8 @@ label_classes = {
 inv_labels = {label_classes[x]: x for x in label_classes}
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    model = keras.models.load_model('brownmodel.h5')
+    model = keras.models.load_model('modelnew100.h5')
+    #viz = tf.keras.Model(inputs=model.inputs, outputs=[model.layers[i].output for i in [2,4,6,8,10]])
     s.bind((HOST, PORT))
     s.listen()
     print('Server initialized on',(HOST,PORT))
@@ -39,7 +43,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 img = np.frombuffer(data, dtype=np.uint8).reshape(1,384,256,3)
             except:
                 continue
-            print(img[:,192:,:,:].shape)
-            inference = inv_labels[np.argmax(model.predict(img[:,192:,:,:])[0])]
-            print(inference)
-            conn.send(str.encode(inference))
+            #inference = inv_labels[np.argmax(model.predict(img[:,:,:,:]))]
+            #feature_maps = viz.predict(img[:,192:,:,:])
+            #print(feature_maps[0].shape)
+            conn.send(str.encode(str(model.predict(img[:,:,:,:]).tolist())))
+            #conn.send(str.encode(str(viz.predict(img[:,:,:,:])[0].tolist())))
+            #print(sys.getsizeof(feature_maps[0].tobytes()))
+           # conn.send(feature_maps[0].tobytes())

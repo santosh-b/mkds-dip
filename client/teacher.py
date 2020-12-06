@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from skimage.segmentation import slic
 
 LEFT = 32
 RIGHT = 16
@@ -15,11 +16,11 @@ class Teacher:
         self.reward_function_addr = reward
         self.f = outputfile
         self.l = labelfile
-        #self.road_colors = ((88,88,72),(120,120,104)) # Vector of colors to represent all the colors on the road
-        self.road_colors = ((151,157,157),(200,200,152),(184,80,40),(240,208,152),(184,192,144),(200,200,152),(211,160,140),(80,24,8),(176,88,40),(175,175,175),(232,232,232),(168,88,16),(136,112,8),(136,56,32),(113,134,118),(160,96,80),(104,48,24),(40,64,56),(140,56,32),(200,88,40),(50,94,72),(44,72,56))
-        self.screen_watch_ratio = 0.1 # How to weight the top screen vs bottom screen
-        #self.branch_pmf = [1, .0, .0, .0, 0, .00, .00, .00, .00, .00, .00, .00, .00]
-        self.branch_pmf = [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00]
+        #self.road_colors = ((114,106,82),(166,142,89),(134,109,69),(182,158,101),(174,150,101),(101,85,77),(97,89,81),(51,48,43),(49,45,41)) # Vector of colors to represent all the colors on the road
+        self.road_colors = ((192,192,192),(112,104,80))
+        self.screen_watch_ratio = 0.5 # How to weight the top screen vs bottom screen
+        self.branch_pmf = [1, .0, .0, .0, 0, .00, .00, .00, .00, .00, .00, .00, .00]
+        #self.branch_pmf = [.85, .0375, .0375, .0375, .0375, .00, .00, .00, .00, .00, .00, .00, .00]
         self.next_dump = self.emu.screenshot() # Hold placeholder data dump
         self.reward_cap = 4100 # The amount of reward before terminating training (i.e. race is done)
         self.headless = headless
@@ -76,6 +77,17 @@ class Teacher:
                 print('chosen reward', next_branch[0], '------\n')
                 self.f.flush()
 
+    def s_factor(self, screen):
+        screen = screen[192:,:,:]
+        segs = slic(screen, n_segments=50, compactness=10, sigma=1, start_label=1)
+        superpixels_around_player = np.unique(segs[114:268,140:300])
+        penalty = 0
+        for s in superpixels_around_player:
+            superpixel_color = np.mean(screen[segs == s], axis=0)
+            if self.color_dist(superpixel_color, self.road_colors) > 20:
+                penalty += 1
+        return penalty
+
     def dump_data(self, label):
         key = np.datetime64('now').astype(int)
         self.next_dump.save(f'training_data5/{key}.png')
@@ -84,7 +96,8 @@ class Teacher:
         self.next_dump = self.emu.screenshot()
 
     def color_dist(self, c1, c2):
-        return np.min(np.linalg.norm(c1-c2, axis=-1))
+        # error-energy calculation
+        return np.min(np.linalg.norm(c1-c2, axis=-1)**2)
 
     def get_reward_memory(self):
         return self.emu.memory.read(self.reward_function_addr,self.reward_function_addr,2,signed=True)
@@ -97,14 +110,17 @@ class Teacher:
         for pix in pixels_top:
             pix = pix[0]
             dist = self.color_dist(pix,self.road_colors)
-            if dist > 40:
-                reward -= 2*self.screen_watch_ratio
+            # energy error signal from top screen
+            reward -= 2*self.screen_watch_ratio * dist
         # Scan for pixels in the bottom screen
         for pix in pixels_bot:
             pix = pix[0]
+            # energy error signal from bottom screen
             dist = self.color_dist(pix,self.road_colors)
-            if dist > 40:
-                reward -= 2*(1-self.screen_watch_ratio)
+            reward -= 2*(1-self.screen_watch_ratio) * dist
+
+        # the S-factor (bottom screen only)
+        reward -= 1.5*self.s_factor(self.emu.screenshot())
         return reward
 
     def simulate_branch(self, branch):
